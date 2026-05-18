@@ -1,0 +1,70 @@
+services:
+  wallet-app:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: wallet-app
+    working_dir: /var/www/html
+    volumes:
+      - ./src:/var/www/html
+    environment:
+      APP_ENV: local
+      PHP_IDE_CONFIG: "serverName=wallet-app"
+    depends_on:
+      - wallet-db
+      - wallet-redis
+
+  wallet-worker:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: wallet-worker
+    working_dir: /var/www/html
+    command: php artisan queue:work --tries=3 --timeout=90
+    volumes:
+      - ./src:/var/www/html
+    environment:
+      APP_ENV: local
+    depends_on:
+      - wallet-db
+      - wallet-redis
+
+  wallet-nginx:
+    image: nginx:alpine
+    container_name: wallet-nginx
+    ports:
+      - "8080:80"
+    volumes:
+      - ./src:/var/www/html
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - wallet-app
+
+  wallet-db:
+    image: postgres:16
+    container_name: wallet-db
+    environment:
+      POSTGRES_DB: wallet
+      POSTGRES_USER: wallet
+      POSTGRES_PASSWORD: wallet
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wallet -d wallet"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  wallet-redis:
+    image: redis:7-alpine
+    container_name: wallet-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+
+volumes:
+  postgres-data:
+  redis-data:
