@@ -115,18 +115,37 @@ class WalletService
         }
     }
 
-    private function recordTransaction(
+    public function recordPendingTransaction(
+        Wallet $wallet,
+        int $amount,
+        string $type,
+        string $direction,
+        string $description = '',
+        array $metadata = []
+    ): Transaction {
+        return $this->recordTransaction(
+            wallet: $wallet,
+            amount: $amount,
+            type: $type,
+            direction: $direction,
+            status: 'pending',
+            description: $description,
+            metadata: $metadata
+        );
+    }
+
+    public function recordTransaction(
         Wallet $wallet,
         int $amount,
         string $type,
         string $direction,
         string $status,
-        string $description,
-        array $metadata
+        string $description = '',
+        array $metadata = []
     ): Transaction {
         return Transaction::create([
             'wallet_id' => $wallet->id,
-            'reference_id' => Str::uuid(),
+            'reference_id' => (string) Str::uuid(),
             'type' => $type,
             'direction' => $direction,
             'amount' => $amount,

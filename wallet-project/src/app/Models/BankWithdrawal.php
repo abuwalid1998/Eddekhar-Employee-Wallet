@@ -14,4 +14,15 @@ class BankWithdrawal extends Model
         'currency',
         'status',
     ];
+
+    public function wallet()
+    {
+        return $this->belongsTo(Wallet::class);
+    }
+
+    public function transaction()
+    {
+        return $this->belongsTo(Transaction::class);
+    }
+
 }
