@@ -4,6 +4,9 @@ namespace App\Services;
 
 use App\Models\IdempotencyKey;
 
+/**
+ * @author Amjad Khaliliah
+ */
 class IdempotencyService
 {
     public function find(string $key): ?IdempotencyKey

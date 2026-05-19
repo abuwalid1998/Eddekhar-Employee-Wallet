@@ -4,6 +4,9 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * @author Amjad Khaliliah
+ */
 class PayrollEventRequest extends FormRequest
 {
     public function authorize(): bool
@@ -18,7 +21,6 @@ class PayrollEventRequest extends FormRequest
                 'required',
                 'string',
                 'max:255',
-                'unique:payroll_events,external_event_id',
             ],
             'employee_external_id' => [
                 'required',
