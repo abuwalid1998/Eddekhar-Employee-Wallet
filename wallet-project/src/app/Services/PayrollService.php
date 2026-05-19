@@ -7,35 +7,41 @@ use App\Models\PayrollEvent;
 use App\Models\Wallet;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * @author Amjad Khaliliah
+ */
 class PayrollService
 {
     public function __construct(
         private WalletService $walletService
     ) {}
 
-    public function processSalaryEvent(array $payload): PayrollEvent
+    public function processSalaryEvent(array $payload): array
     {
         return DB::transaction(function () use ($payload) {
             $existing = PayrollEvent::where(
                 'external_event_id',
-                $payload['event_id']
+                $payload['external_event_id']
             )->first();
 
             if ($existing) {
-                return $existing;
+                return ['event' => $existing, 'was_duplicate' => true];
             }
 
             $event = PayrollEvent::create([
-                'external_event_id' => $payload['event_id'],
+                'external_event_id' => $payload['external_event_id'],
                 'type' => $payload['type'],
                 'payload' => $payload,
                 'status' => 'processing',
             ]);
 
-            $employee = Employee::findOrFail($payload['employee_id']);
+            $employee = Employee::where(
+                'external_employee_id',
+                $payload['employee_external_id']
+            )->firstOrFail();
 
             $wallet = Wallet::where('employee_id', $employee->id)
-                ->where('currency', $payload['currency'])
+                ->where('currency', strtoupper($payload['currency']))
                 ->firstOrFail();
 
             $this->walletService->credit(
@@ -53,7 +59,7 @@ class PayrollService
                 'processed_at' => now(),
             ]);
 
-            return $event;
+            return ['event' => $event->fresh(), 'was_duplicate' => false];
         });
     }
 }

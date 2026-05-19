@@ -7,6 +7,9 @@ use App\Http\Requests\PayrollEventRequest;
 use App\Services\PayrollService;
 use Illuminate\Http\JsonResponse;
 
+/**
+ * @author Amjad Khaliliah
+ */
 class PayrollController extends Controller
 {
     public function __construct(
@@ -16,9 +19,12 @@ class PayrollController extends Controller
 
     public function store(PayrollEventRequest $request): JsonResponse
     {
-        $event = $this->payrollService->processSalaryEvent(
+        $result = $this->payrollService->processSalaryEvent(
             $request->validated()
         );
+
+        $event = $result['event'];
+        $statusCode = $result['was_duplicate'] ? 200 : 201;
 
         return response()->json([
             'message' => 'Payroll event processed successfully.',
@@ -26,6 +32,6 @@ class PayrollController extends Controller
                 'event_id' => $event->id,
                 'status' => $event->status,
             ],
-        ], 201);
+        ], $statusCode);
     }
 }

@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Exceptions\Domain\CurrencyMismatchException;
 use App\Exceptions\Domain\InsufficientFundsException;
 use App\Exceptions\Domain\InactiveWalletException;
 use App\Models\Transaction;
@@ -10,6 +9,9 @@ use App\Models\Wallet;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
+/**
+ * @author Amjad Khaliliah
+ */
 class WalletService
 {
     public function credit(
@@ -86,6 +88,7 @@ class WalletService
     {
         DB::transaction(function () use ($wallet, $amount) {
             $wallet = Wallet::lockForUpdate()->findOrFail($wallet->id);
+            $this->assertWalletActive($wallet);
 
             if ($wallet->available_balance < $amount) {
                 throw new InsufficientFundsException();
@@ -101,6 +104,11 @@ class WalletService
     {
         DB::transaction(function () use ($wallet, $amount) {
             $wallet = Wallet::lockForUpdate()->findOrFail($wallet->id);
+            $this->assertWalletActive($wallet);
+
+            if ($wallet->reserved_balance < $amount) {
+                throw new InsufficientFundsException('Reserved balance is insufficient.');
+            }
 
             $wallet->reserved_balance -= $amount;
             $wallet->available_balance += $amount;
