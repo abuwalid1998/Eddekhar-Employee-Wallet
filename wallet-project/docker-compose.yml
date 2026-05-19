@@ -20,7 +20,7 @@ services:
       dockerfile: docker/php/Dockerfile
     container_name: wallet-worker
     working_dir: /var/www/html
-    command: php artisan queue:work --tries=3 --timeout=90
+    command: sh -lc "php artisan queue:work --tries=3 --timeout=90"
     volumes:
       - ./src:/var/www/html
     environment:
