@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class PayrollEvent extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'external_event_id',
         'type',
