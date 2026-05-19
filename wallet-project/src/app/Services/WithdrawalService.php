@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Jobs\ProcessBankWithdrawal;
 use App\Models\BankWithdrawal;
 use App\Models\Wallet;
 use Illuminate\Support\Facades\DB;
@@ -17,7 +18,7 @@ class WithdrawalService
         int $amount,
         string $description = 'Employee withdrawal'
     ): BankWithdrawal {
-        return DB::transaction(function () use (
+        $withdrawal = DB::transaction(function () use (
             $wallet,
             $amount,
             $description
@@ -32,54 +33,55 @@ class WithdrawalService
                 description: $description
             );
 
-            $withdrawal = BankWithdrawal::create([
+            return BankWithdrawal::create([
                 'wallet_id' => $wallet->id,
                 'transaction_id' => $transaction->id,
                 'amount' => $amount,
                 'currency' => $wallet->currency,
                 'status' => 'pending',
             ]);
-
-            // later:
-            // ProcessBankWithdrawal::dispatch($withdrawal);
-
-            return $withdrawal;
         });
+
+        ProcessBankWithdrawal::dispatch($withdrawal->id);
+
+        return $withdrawal;
     }
 
-    public function confirmWithdrawal(BankWithdrawal $withdrawal): void
-    {
-        DB::transaction(function () use ($withdrawal) {
+    public function confirmWithdrawal(
+        BankWithdrawal $withdrawal,
+        string $bankReference
+    ): void {
+        DB::transaction(function () use ($withdrawal, $bankReference) {
             $wallet = $withdrawal->wallet;
+            $transaction = $withdrawal->transaction;
 
             $wallet->reserved_balance -= $withdrawal->amount;
             $wallet->save();
 
-            $withdrawal->update([
-                'status' => 'confirmed',
-            ]);
+            $transaction->status = 'completed';
+            $transaction->save();
 
-            $withdrawal->transaction->update([
-                'status' => 'completed',
-            ]);
+            $withdrawal->status = 'confirmed';
+            $withdrawal->bank_reference = $bankReference;
+            $withdrawal->save();
         });
     }
 
     public function failWithdrawal(BankWithdrawal $withdrawal): void
     {
         DB::transaction(function () use ($withdrawal) {
-            $this->walletService->releaseFunds(
-                $withdrawal->wallet,
-                $withdrawal->amount
-            );
+            $wallet = $withdrawal->wallet;
+            $transaction = $withdrawal->transaction;
 
-            $withdrawal->update([
-                'status' => 'failed',
-            ]);
+            $wallet->reserved_balance -= $withdrawal->amount;
+            $wallet->available_balance += $withdrawal->amount;
+            $wallet->save();
 
-            $withdrawal->transaction->update([
-                'status' => 'failed',
-            ]);
+            $transaction->status = 'failed';
+            $transaction->save();
+
+            $withdrawal->status = 'failed';
+            $withdrawal->save();
         });
     }
 }
