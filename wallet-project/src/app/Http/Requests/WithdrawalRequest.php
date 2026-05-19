@@ -14,9 +14,20 @@ class WithdrawalRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'wallet_id' => ['required', 'exists:wallets,id'],
-            'amount' => ['required', 'integer', 'min:1'],
-            'description' => ['nullable', 'string'],
+            'wallet_id' => [
+                'required',
+                'exists:wallets,id',
+            ],
+            'amount' => [
+                'required',
+                'integer',
+                'min:1',
+            ],
+            'description' => [
+                'nullable',
+                'string',
+                'max:500',
+            ],
         ];
     }
 }

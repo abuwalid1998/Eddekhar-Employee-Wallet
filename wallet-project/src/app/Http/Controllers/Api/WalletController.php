@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\CreateWalletRequest;
 use App\Http\Requests\StoreWalletRequest;
 use App\Http\Resources\TransactionResource;
 use App\Http\Resources\WalletResource;
@@ -26,8 +27,10 @@ class WalletController extends Controller
         return WalletResource::collection($wallets);
     }
 
-    public function store(StoreWalletRequest $request): WalletResource
+    public function store(CreateWalletRequest $request): AnonymousResourceCollection
     {
+        $request->validated();
+
         $wallet = Wallet::create([
             'employee_id' => $request->employee_id,
             'type' => $request->type,
@@ -37,8 +40,7 @@ class WalletController extends Controller
             'status' => 'active',
         ]);
 
-        return new WalletResource($wallet);
-    }
+        return WalletResource::collection(Wallet::paginate());    }
 
     public function show(Wallet $wallet): WalletResource
     {
@@ -57,6 +59,8 @@ class WalletController extends Controller
             ->latest()
             ->paginate(20);
 
-        return TransactionResource::collection($transactions);
+        return TransactionResource::collection(
+            $wallet->transactions()->latest()->paginate()
+        );
     }
 }

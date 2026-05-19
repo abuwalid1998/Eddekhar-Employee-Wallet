@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class TransferRequest extends FormRequest
+class CreateWalletRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -14,24 +14,24 @@ class TransferRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'from_wallet_id' => [
+            'employee_id' => [
                 'required',
-                'exists:wallets,id',
-                'different:to_wallet_id',
+                'exists:employees,id',
             ],
-            'to_wallet_id' => [
+            'type' => [
                 'required',
-                'exists:wallets,id',
-            ],
-            'amount' => [
-                'required',
-                'integer',
-                'min:1',
-            ],
-            'description' => [
-                'nullable',
                 'string',
-                'max:500',
+                'in:salary,bonus,savings',
+            ],
+            'currency' => [
+                'required',
+                'string',
+                'size:3',
+            ],
+            'available_balance' => [
+                'nullable',
+                'integer',
+                'min:0',
             ],
         ];
     }

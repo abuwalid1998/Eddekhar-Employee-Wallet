@@ -14,11 +14,32 @@ class PayrollEventRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'event_id' => ['required', 'uuid'],
-            'type' => ['required', 'string'],
-            'employee_id' => ['required', 'exists:employees,id'],
-            'currency' => ['required', 'string', 'size:3'],
-            'amount' => ['required', 'integer', 'min:1'],
+            'external_event_id' => [
+                'required',
+                'string',
+                'max:255',
+                'unique:payroll_events,external_event_id',
+            ],
+            'employee_external_id' => [
+                'required',
+                'string',
+                'exists:employees,external_employee_id',
+            ],
+            'amount' => [
+                'required',
+                'integer',
+                'min:1',
+            ],
+            'currency' => [
+                'required',
+                'string',
+                'size:3',
+            ],
+            'type' => [
+                'required',
+                'string',
+                'in:salary,bonus',
+            ],
         ];
     }
 }

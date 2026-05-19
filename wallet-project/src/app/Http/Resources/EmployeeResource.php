@@ -15,8 +15,7 @@ class EmployeeResource extends JsonResource
             'name' => $this->name,
             'email' => $this->email,
             'status' => $this->status,
-            'wallets' => WalletResource::collection($this->whenLoaded('wallets')),
-            'created_at' => $this->created_at,
+            'created_at' => $this->created_at?->toISOString(),
         ];
     }
 }

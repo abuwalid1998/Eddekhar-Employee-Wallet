@@ -17,7 +17,7 @@ class BankWithdrawalResource extends JsonResource
             'currency' => $this->currency,
             'status' => $this->status,
             'bank_reference' => $this->bank_reference,
-            'created_at' => $this->created_at,
+            'created_at' => $this->created_at?->toISOString(),
         ];
     }
 }

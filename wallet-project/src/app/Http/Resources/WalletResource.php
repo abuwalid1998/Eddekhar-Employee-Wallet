@@ -17,7 +17,7 @@ class WalletResource extends JsonResource
             'available_balance' => $this->available_balance,
             'reserved_balance' => $this->reserved_balance,
             'status' => $this->status,
-            'created_at' => $this->created_at,
+            'created_at' => $this->created_at?->toISOString(),
         ];
     }
 }

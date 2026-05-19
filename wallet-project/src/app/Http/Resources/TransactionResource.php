@@ -11,6 +11,7 @@ class TransactionResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'wallet_id' => $this->wallet_id,
             'reference_id' => $this->reference_id,
             'type' => $this->type,
             'direction' => $this->direction,
@@ -19,7 +20,7 @@ class TransactionResource extends JsonResource
             'status' => $this->status,
             'description' => $this->description,
             'metadata' => $this->metadata,
-            'created_at' => $this->created_at,
+            'created_at' => $this->created_at?->toISOString(),
         ];
     }
 }

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StoreEmployeeRequest;
+use App\Http\Requests\CreateEmployeeRequest;
 use App\Http\Resources\EmployeeResource;
 use App\Models\Employee;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -19,14 +19,11 @@ class EmployeeController extends Controller
         return EmployeeResource::collection($employees);
     }
 
-    public function store(StoreEmployeeRequest $request): EmployeeResource
+    public function store(CreateEmployeeRequest $request): EmployeeResource
     {
-        $employee = Employee::create([
-            'external_employee_id' => $request->external_employee_id,
-            'name' => $request->name,
-            'email' => $request->email,
-            'status' => $request->status ?? 'active',
-        ]);
+        $employee = Employee::create(
+            $request->validated()
+        );
 
         return new EmployeeResource($employee);
     }

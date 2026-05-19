@@ -13,12 +13,18 @@ class TransferController extends Controller
 {
     public function __construct(
         private TransferService $transferService
-    ) {}
+    ) {
+    }
 
     public function store(TransferRequest $request): JsonResponse
     {
-        $sourceWallet = Wallet::findOrFail($request->source_wallet_id);
-        $destinationWallet = Wallet::findOrFail($request->destination_wallet_id);
+        $sourceWallet = Wallet::findOrFail(
+            $request->from_wallet_id
+        );
+
+        $destinationWallet = Wallet::findOrFail(
+            $request->to_wallet_id
+        );
 
         $result = $this->transferService->transfer(
             sourceWallet: $sourceWallet,
@@ -30,8 +36,13 @@ class TransferController extends Controller
         return response()->json([
             'message' => 'Transfer completed successfully.',
             'data' => [
-                'debit' => new TransactionResource($result['debit']),
-                'credit' => new TransactionResource($result['credit']),
+                'debit' => (new TransactionResource(
+                    $result['debit']
+                ))->resolve(),
+
+                'credit' => (new TransactionResource(
+                    $result['credit']
+                ))->resolve(),
             ],
         ]);
     }

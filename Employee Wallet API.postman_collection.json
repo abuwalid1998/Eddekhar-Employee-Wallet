@@ -1,0 +1,387 @@
+{
+	"info": {
+		"_postman_id": "a3ef61ca-0bb7-4f7c-a5f3-4cef120f17e0",
+		"name": "Employee Wallet API",
+		"description": "StartFragment\n\n**Employee Wallet API – Postman Collection**\n\nThis Postman collection provides a complete test suite for the Employee Wallet backend assessment API.\n\nIt covers the full business workflow of the wallet platform, including employee management, wallet creation, internal fund transfers, payroll synchronization, asynchronous bank withdrawals, transaction history retrieval, and infrastructure health verification.\n\nEndFragment",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "17268128",
+		"_collection_link": "https://bop-team.postman.co/workspace/Bop-Team-Workspace~725fa9d0-1ec3-4d38-8f59-0f77d81f46b6/collection/17268128-a3ef61ca-0bb7-4f7c-a5f3-4cef120f17e0?action=share&source=collection_link&creator=17268128"
+	},
+	"item": [
+		{
+			"name": "Health Check",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/health",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"health"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Employee",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Employee created\", function () {\r",
+							"    pm.response.to.have.status(201);\r",
+							"});\r",
+							"\r",
+							"const json = pm.response.json();\r",
+							"pm.environment.set(\"employee_id\", json.data.id);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"external_employee_id\": \"4033917970\",\r\n  \"name\": \"Amjad Walid\",\r\n  \"email\": \"AmjadWalid@example.com\",\r\n  \"status\": \"active\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/employees",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"employees"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "List Employees",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/employees",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"employees"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Employee",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/employees/{{employee_id}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"employees",
+						"{{employee_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Primary Wallet",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Wallet created\", function () {\r",
+							"    pm.response.to.have.status(201);\r",
+							"});\r",
+							"\r",
+							"const json = pm.response.json();\r",
+							"pm.environment.set(\"wallet_id\", json.data.id);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"employee_id\":{{employee_id}},\r\n  \"type\": \"salary\",\r\n  \"currency\": \"USD\",\r\n  \"available_balance\": 50000\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/wallets",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"wallets"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Secondary Wallet",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const json = pm.response.json();\r",
+							"pm.environment.set(\"second_wallet_id\", json.data.id);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"employee_id\": {{employee_id}},\r\n  \"type\": \"bonus\",\r\n  \"currency\": \"USD\",\r\n  \"available_balance\": 10000\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/wallets",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"wallets"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "List Wallets",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/wallets",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"wallets"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Wallet",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/wallets/{{wallet_id}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"wallets",
+						"{{wallet_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Internal Transfer",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"from_wallet_id\": {{wallet_id}},\r\n  \"to_wallet_id\": {{second_wallet_id}},\r\n  \"amount\": 5000,\r\n  \"description\": \"Internal transfer\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/transfers",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"transfers"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Payroll Event",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"external_event_id\": \"PAY-1001\",\r\n  \"employee_external_id\": \"403391790\",\r\n  \"amount\": 10000,\r\n  \"currency\": \"USD\",\r\n  \"type\": \"salary\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/payroll/events",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"payroll",
+						"events"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Async Withdrawal",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const json = pm.response.json();\r",
+							"pm.environment.set(\"withdrawal_id\", json.data.id);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"wallet_id\": {{wallet_id}},\r\n  \"amount\": 5000,\r\n  \"description\": \"ATM withdrawal\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/withdrawals",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"withdrawals"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Wallet Transactions",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/wallets/{{wallet_id}}/transactions",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"wallets",
+						"{{wallet_id}}",
+						"transactions"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8080/api",
+			"type": "string"
+		},
+		{
+			"key": "employee_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "wallet_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "second_wallet_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "withdrawal_id",
+			"value": "",
+			"type": "string"
+		}
+	]
+}

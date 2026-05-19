@@ -11,7 +11,8 @@ class PayrollController extends Controller
 {
     public function __construct(
         private PayrollService $payrollService
-    ) {}
+    ) {
+    }
 
     public function store(PayrollEventRequest $request): JsonResponse
     {
@@ -25,6 +26,6 @@ class PayrollController extends Controller
                 'event_id' => $event->id,
                 'status' => $event->status,
             ],
-        ]);
+        ], 201);
     }
 }
