@@ -2,11 +2,15 @@
 
 namespace App\Services;
 
+use App\Exceptions\Domain\InsufficientFundsException;
 use App\Jobs\ProcessBankWithdrawal;
 use App\Models\BankWithdrawal;
 use App\Models\Wallet;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * @author Amjad Khaliliah
+ */
 class WithdrawalService
 {
     public function __construct(
@@ -52,8 +56,20 @@ class WithdrawalService
         string $bankReference
     ): void {
         DB::transaction(function () use ($withdrawal, $bankReference) {
-            $wallet = $withdrawal->wallet;
+            $withdrawal = BankWithdrawal::with(['wallet', 'transaction'])
+                ->lockForUpdate()
+                ->findOrFail($withdrawal->id);
+
+            if ($withdrawal->status !== 'pending') {
+                return;
+            }
+
+            $wallet = Wallet::lockForUpdate()->findOrFail($withdrawal->wallet_id);
             $transaction = $withdrawal->transaction;
+
+            if ($wallet->reserved_balance < $withdrawal->amount) {
+                throw new InsufficientFundsException('Reserved balance is insufficient.');
+            }
 
             $wallet->reserved_balance -= $withdrawal->amount;
             $wallet->save();
@@ -70,8 +86,20 @@ class WithdrawalService
     public function failWithdrawal(BankWithdrawal $withdrawal): void
     {
         DB::transaction(function () use ($withdrawal) {
-            $wallet = $withdrawal->wallet;
+            $withdrawal = BankWithdrawal::with(['wallet', 'transaction'])
+                ->lockForUpdate()
+                ->findOrFail($withdrawal->id);
+
+            if ($withdrawal->status !== 'pending') {
+                return;
+            }
+
+            $wallet = Wallet::lockForUpdate()->findOrFail($withdrawal->wallet_id);
             $transaction = $withdrawal->transaction;
+
+            if ($wallet->reserved_balance < $withdrawal->amount) {
+                throw new InsufficientFundsException('Reserved balance is insufficient.');
+            }
 
             $wallet->reserved_balance -= $withdrawal->amount;
             $wallet->available_balance += $withdrawal->amount;
