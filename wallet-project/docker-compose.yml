@@ -41,21 +41,22 @@ services:
       - wallet-app
 
   wallet-db:
-    image: postgres:16
+    image: mysql:8.4
     container_name: wallet-db
     environment:
-      POSTGRES_DB: wallet
-      POSTGRES_USER: wallet
-      POSTGRES_PASSWORD: wallet
+      MYSQL_DATABASE: wallet
+      MYSQL_USER: wallet
+      MYSQL_PASSWORD: wallet
+      MYSQL_ROOT_PASSWORD: root
     ports:
-      - "5432:5432"
+      - "3306:3306"
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - mysql-data:/var/lib/mysql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U wallet -d wallet"]
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "wallet", "-pwallet" ]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
 
   wallet-redis:
     image: redis:7-alpine
@@ -66,5 +67,5 @@ services:
       - redis-data:/data
 
 volumes:
-  postgres-data:
+  mysql-data:
   redis-data:

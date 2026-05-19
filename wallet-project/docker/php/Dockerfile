@@ -6,13 +6,13 @@ RUN apt-get update && apt-get install -y \
     git \
     unzip \
     curl \
-    libpq-dev \
     libzip-dev \
     libicu-dev \
     libonig-dev \
+    default-mysql-client \
     && docker-php-ext-install \
         pdo \
-        pdo_pgsql \
+        pdo_mysql \
         bcmath \
         intl \
         zip \
