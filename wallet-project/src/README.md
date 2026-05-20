@@ -1,58 +1,321 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Employee Wallet API
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+REST API for employees, wallets, transfers, withdrawals, payroll events, and auth.
 
-## About Laravel
+## Base URL
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
-
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
-
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
-
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
-
-```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+```text
+/api
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+## Authentication
 
-## Contributing
+Protected routes require JWT:
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```http
+Authorization: Bearer <token>
+```
 
-## Code of Conduct
+---
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## Endpoints (with request/response examples)
 
-## Security Vulnerabilities
+## Auth
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### POST `/auth/sign-up`
+**Request**
+```json
+{
+  "email": "john@example.com",
+  "password": "secret1234"
+}
+```
 
-## License
+**Response (201)**
+```json
+{
+  "message": "User registered successfully.",
+  "data": {
+    "user_id": 1,
+    "email": "john@example.com",
+    "token": "<jwt>",
+    "token_type": "Bearer",
+    "expires_in_minutes": 120
+  }
+}
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+### POST `/auth/sign-in` (same as `/auth/login`)
+**Request**
+```json
+{
+  "email": "john@example.com",
+  "password": "secret1234"
+}
+```
+
+**Response (200)**
+```json
+{
+  "message": "Signed in successfully.",
+  "data": {
+    "user_id": 1,
+    "email": "john@example.com",
+    "token": "<jwt>",
+    "token_type": "Bearer",
+    "expires_in_minutes": 120
+  }
+}
+```
+
+## Health
+
+### GET `/health`
+**Response (200)**
+```json
+{
+  "status": "healthy",
+  "checks": {
+    "database": true,
+    "redis": true
+  }
+}
+```
+
+## Employees (JWT required)
+
+### GET `/employees`
+**Request query example**
+```text
+/employees?page=1
+```
+
+**Response (200)**
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "name": "John Doe",
+      "email": "john@company.com",
+      "wallets": []
+    }
+  ],
+  "links": {},
+  "meta": {}
+}
+```
+
+### POST `/employees`
+**Request**
+```json
+{
+  "name": "John Doe",
+  "email": "john@company.com"
+}
+```
+
+**Response (200)**
+```json
+{
+  "data": {
+    "id": 1,
+    "name": "John Doe",
+    "email": "john@company.com",
+    "wallets": []
+  }
+}
+```
+
+### GET `/employees/{employee}`
+**Response (200)**
+```json
+{
+  "data": {
+    "id": 1,
+    "name": "John Doe",
+    "email": "john@company.com",
+    "wallets": [
+      {
+        "id": 10,
+        "type": "salary",
+        "currency": "USD"
+      }
+    ]
+  }
+}
+```
+
+## Wallets (JWT required)
+
+### GET `/wallets`
+**Request query example**
+```text
+/wallets?employee_id=1&currency=USD&page=1
+```
+
+**Response (200)**
+```json
+{
+  "data": [
+    {
+      "id": 10,
+      "employee_id": 1,
+      "type": "salary",
+      "currency": "USD",
+      "available_balance": 0,
+      "reserved_balance": 0,
+      "status": "active",
+      "created_at": "2026-05-20T08:00:00.000000Z"
+    }
+  ],
+  "links": {},
+  "meta": {}
+}
+```
+
+### POST `/wallets`
+**Request**
+```json
+{
+  "employee_id": 1,
+  "type": "salary",
+  "currency": "usd"
+}
+```
+
+**Response (201)**
+```json
+{
+  "success": true,
+  "message": "Wallet created successfully.",
+  "wallet": {
+    "id": 10,
+    "employee_id": 1,
+    "type": "salary",
+    "currency": "USD",
+    "available_balance": 0,
+    "reserved_balance": 0,
+    "status": "active",
+    "created_at": "2026-05-20T08:00:00.000000Z"
+  }
+}
+```
+
+### GET `/wallets/{wallet}`
+**Response (200)**
+```json
+{
+  "data": {
+    "id": 10,
+    "employee_id": 1,
+    "type": "salary",
+    "currency": "USD",
+    "available_balance": 0,
+    "reserved_balance": 0,
+    "status": "active",
+    "created_at": "2026-05-20T08:00:00.000000Z"
+  }
+}
+```
+
+### GET `/wallets/{wallet}/transactions`
+**Response (200)**
+```json
+{
+  "data": [
+    {
+      "id": 100,
+      "wallet_id": 10,
+      "type": "credit",
+      "amount": 10000,
+      "status": "completed"
+    }
+  ],
+  "links": {},
+  "meta": {}
+}
+```
+
+## Transfers (JWT + Idempotency-Key required)
+
+### POST `/transfers`
+Headers:
+```text
+Idempotency-Key: transfer-001
+```
+
+**Request**
+```json
+{
+  "from_wallet_id": 10,
+  "to_wallet_id": 11,
+  "amount": 500,
+  "description": "Internal transfer"
+}
+```
+
+**Response (200)**
+```json
+{
+  "message": "Transfer completed successfully.",
+  "data": {
+    "debit": {"id": 201, "wallet_id": 10, "type": "debit", "amount": 500},
+    "credit": {"id": 202, "wallet_id": 11, "type": "credit", "amount": 500}
+  }
+}
+```
+
+## Withdrawals (JWT + Idempotency-Key required)
+
+### POST `/withdrawals`
+Headers:
+```text
+Idempotency-Key: withdrawal-001
+```
+
+**Request**
+```json
+{
+  "wallet_id": 10,
+  "amount": 1000,
+  "description": "ATM withdrawal"
+}
+```
+
+**Response (201)**
+```json
+{
+  "data": {
+    "id": 55,
+    "wallet_id": 10,
+    "amount": 1000,
+    "status": "pending"
+  }
+}
+```
+
+## Payroll (JWT required)
+
+### POST `/payroll/events`
+**Request**
+```json
+{
+  "event_id": "payroll-2026-05-20-001",
+  "employee_id": 1,
+  "amount": 350000,
+  "currency": "USD",
+  "description": "May salary"
+}
+```
+
+**Response (201 or 200 for duplicate)**
+```json
+{
+  "message": "Payroll event processed successfully.",
+  "data": {
+    "event_id": 77,
+    "status": "processed"
+  }
+}
+```
