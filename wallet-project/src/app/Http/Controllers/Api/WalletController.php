@@ -32,9 +32,9 @@ class WalletController extends Controller
     {
         try {
             $wallet = Wallet::create([
-                'employee_id' => $request->input('employee_id'),
-                'type' => $request->input('type'),
-                'currency' => strtoupper($request->input('currency')),
+                'employee_id' => $validated['employee_id'],
+                'type' => $validated['type'],
+                'currency' => strtoupper($validated['currency']),
                 'available_balance' => 0,
                 'reserved_balance' => 0,
                 'status' => 'active',
