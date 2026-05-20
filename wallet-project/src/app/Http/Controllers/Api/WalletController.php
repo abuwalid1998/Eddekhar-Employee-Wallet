@@ -30,8 +30,6 @@ class WalletController extends Controller
 
     public function store(CreateWalletRequest $request): JsonResponse
     {
-        $validated = $request->validated();
-
         try {
             $wallet = Wallet::create([
                 'employee_id' => $validated['employee_id'],
