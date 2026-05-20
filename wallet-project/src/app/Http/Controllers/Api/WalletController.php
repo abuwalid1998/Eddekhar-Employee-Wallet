@@ -4,11 +4,12 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CreateWalletRequest;
-use App\Http\Requests\StoreWalletRequest;
 use App\Http\Resources\TransactionResource;
 use App\Http\Resources\WalletResource;
 use App\Models\Wallet;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Throwable;
 
 class WalletController extends Controller
 {
@@ -27,20 +28,32 @@ class WalletController extends Controller
         return WalletResource::collection($wallets);
     }
 
-    public function store(CreateWalletRequest $request): AnonymousResourceCollection
+    public function store(CreateWalletRequest $request): JsonResponse
     {
-        $request->validated();
+        try {
+            $wallet = Wallet::create([
+                'employee_id' => $request->input('employee_id'),
+                'type' => $request->input('type'),
+                'currency' => strtoupper($request->input('currency')),
+                'available_balance' => 0,
+                'reserved_balance' => 0,
+                'status' => 'active',
+            ]);
 
-        $wallet = Wallet::create([
-            'employee_id' => $request->employee_id,
-            'type' => $request->type,
-            'currency' => strtoupper($request->currency),
-            'available_balance' => 0,
-            'reserved_balance' => 0,
-            'status' => 'active',
-        ]);
+            return response()->json([
+                'success' => true,
+                'message' => 'Wallet created successfully.',
+                'wallet' => new WalletResource($wallet->fresh()),
+            ], 201);
+        } catch (Throwable $exception) {
+            report($exception);
 
-        return WalletResource::collection(Wallet::paginate());    }
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to create wallet.',
+            ], 500);
+        }
+    }
 
     public function show(Wallet $wallet): WalletResource
     {
